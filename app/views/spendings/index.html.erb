@@ -1,0 +1,31 @@
+<p style="color: green"><%= notice %></p>
+<h1>Spendings</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <% grouped_spendings = @spendings.group_by { |s| s.date.strftime("%b-%y") } %>
+      <% @spendings.map { |s| s.employee.departement.name }.uniq.each do |departement| %>
+        <th><%= departement %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+      <% @spendings.group_by { |s| s.date.strftime("%b-%y") }.each do |date, spendings| %>
+        <tr>
+          <td><%= date %></td>
+          <% @spendings.map { |s| s.employee.departement.name }.uniq.each do |departement| %>
+            <% current_spendings = spendings.select { |s| s.employee.departement.name == departement } %>
+            <% if current_spendings.any? %>
+              <td><%= current_spendings.map(&:value).sum %></td>
+            <% else %>
+              <td>0.00</td>
+            <% end %>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+</table>
+
+
+<%= link_to "New spending", new_spending_path %>

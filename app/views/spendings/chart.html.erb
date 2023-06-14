@@ -1,0 +1,49 @@
+<h1>Spending Chart</h1>
+<%= form_with(url: chart_spendings_path, method: :get) do |f| %>
+  <div class="field">
+    <%= f.label :departement_id %>
+    <%= f.collection_select(:departement_id, Departement.all, :id, :name, {prompt: true}) %>
+  </div>
+  <%= f.submit "Filter" %>
+<% end %>
+<div id="chart_div"></div>
+<%= javascript_include_tag "https://www.gstatic.com/charts/loader.js" %>
+<%= javascript_tag do %>
+  google.charts.load('current', {packages: ['corechart', 'line']});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Date');
+    <% Departement.all.each do |departement| %>
+      data.addColumn('number', '<%= departement.name %>');
+    <% end %>
+    data.addRows([
+      <% dates = @spendings.group_by { |s| s.date.strftime("%b-%y") } %>
+      <% dates.each do |date, spendings| %>
+        ['<%= date %>',        <% Departement.all.each do |departement| %>          <% spendings_by_department = spendings.select { |s| s.employee.departement_id == departement.id } %>          <% value = spendings_by_department.sum(&:value) %>          <%= value %>,        <% end %>        ],
+      <% end %>
+    ]);
+    var formatter = new google.visualization.NumberFormat({
+      pattern: 'Rp #,###'
+    });
+    for (var colIndex = 1; colIndex < data.getNumberOfColumns(); colIndex++) {
+      formatter.format(data, colIndex);
+    }
+    var options = {
+      title: 'Spending Chart',
+      legend: { position: 'bottom' },
+      chartArea: { left: '10%', top: '10%', width: '90%', height: '80%' },
+      vAxis: { format: '#,###' },
+      hAxis: {
+        slantedText: true,
+        slantedTextAngle: 90,
+        textStyle: {
+          fontSize: 10
+        },
+        title: '<%= @spendings.group_by { |s| s.date.strftime("%b-%Y") }.keys.join(", ") %>'
+      }
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+chart.draw(data, options);
+}
+<% end %>

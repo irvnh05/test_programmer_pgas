@@ -1,0 +1,32 @@
+<%= form_with(model: spending) do |form| %>
+  <% if spending.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(spending.errors.count, "error") %> prohibited this spending from being saved:</h2>
+
+      <ul>
+        <% spending.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :employee_id, style: "display: block" %>
+    <%= form.select :employee_id, options_for_select(@employee.map{ |d| [d.name, d.id] }, @spending.employee_id), prompt: "Select" %>
+  </div>
+
+  <div>
+    <%= form.label :date, style: "display: block" %>
+    <%= form.date_field :date %>
+  </div>
+
+  <div>
+    <%= form.label :value, style: "display: block" %>
+    <%= form.number_field :value, step: 0.01, min: 0 %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
